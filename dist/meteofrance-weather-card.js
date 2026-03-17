@@ -299,11 +299,11 @@ class MeteofranceWeatherCard extends LitElement {
 
     // Initialisation des sous-options journalières manquantes pour toute config activant les prévisions journalières
     if (upgradedConfig["daily_forecast"] !== false) {
-      if (upgradedConfig["daily_wind"] === undefined) upgradedConfig["daily_wind"] = true;
-      if (upgradedConfig["daily_wind_gust"] === undefined) upgradedConfig["daily_wind_gust"] = true;
+      if (upgradedConfig["daily_wind"] === undefined) upgradedConfig["daily_wind"] = false;
+      if (upgradedConfig["daily_wind_gust"] === undefined) upgradedConfig["daily_wind_gust"] = false;
       if (upgradedConfig["daily_precipitation"] === undefined) upgradedConfig["daily_precipitation"] = true;
       if (upgradedConfig["daily_humidity"] === undefined) upgradedConfig["daily_humidity"] = true;
-      if (upgradedConfig["daily_wind_icons"] === undefined) upgradedConfig["daily_wind_icons"] = true;
+      if (upgradedConfig["daily_wind_icons"] === undefined) upgradedConfig["daily_wind_icons"] = false;
     }
 
     // Migration de la clé "forecast" dépréciée (HA < 2023.1 stockait les prévisions dans les attributs ;
