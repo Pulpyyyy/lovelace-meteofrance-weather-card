@@ -1,3 +1,8 @@
+## Unreleased
+
+- Honour the Home Assistant user profile "Time zone" setting (server or browser) for all displayed times (hourly forecasts, sunrise/sunset, rain in the hour), like the native cards. The card also refreshes when this profile setting changes.
+- Daily forecasts are displayed on the right calendar day whatever the display time zone (Météo-France stamps daily forecasts at 00:00 UTC).
+
 ## 1.2.0
 
 - Added UI editor

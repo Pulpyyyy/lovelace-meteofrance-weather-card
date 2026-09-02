@@ -149,6 +149,14 @@ const translations = {
   },
 };
 
+// Fuseau horaire du navigateur (nom IANA). Certains environnements renvoient un décalage ("+00:00")
+// au lieu d'un nom : on l'ignore alors, comme le fait le frontend HA.
+const rawBrowserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const BROWSER_TIME_ZONE =
+  rawBrowserTimeZone && (rawBrowserTimeZone === "UTC" || rawBrowserTimeZone.includes("/"))
+    ? rawBrowserTimeZone
+    : undefined;
+
 const rainForecastValues = new Map([
   ["Pas de valeur", 0.1],
   ["Temps sec", 0.1],
@@ -194,6 +202,7 @@ function hasConfigOrEntityChanged(element, changedProps) {
       oldHass.states[element._config.entity] !==
         element.hass.states[element._config.entity] ||
       oldHass.states["sun.sun"] !== element.hass.states["sun.sun"] ||
+      oldHass.locale !== element.hass.locale ||
       !DefaultSensors.every((sensor) => {
         const sensorName = "sensor." + entityName + sensor[1];
         return oldHass.states[sensorName] === element.hass.states[sensorName];
@@ -350,6 +359,24 @@ class MeteofranceWeatherCard extends LitElement {
     if (timeFormat === "12") return { "hour12": true };
     if (timeFormat === "24") return { "hour12": false };
     return {};
+  }
+
+  // Fuseau horaire d'affichage : celui du navigateur si le profil utilisateur HA le demande
+  // (réglage « Fuseau horaire » du profil, hass.locale.time_zone = "local"), sinon celui du serveur,
+  // comme les cartes natives.
+  getDisplayTimeZone() {
+    if (this.hass.locale?.time_zone === "local" && BROWSER_TIME_ZONE) {
+      return BROWSER_TIME_ZONE;
+    }
+    return this.hass.config.time_zone;
+  }
+
+  // Fuseau horaire d'une prévision par jour. Météo-France horodate chaque jour à 00:00 UTC : l'afficher en UTC
+  // donne le bon jour calendaire quel que soit le fuseau d'affichage (un fuseau à l'ouest de l'UTC afficherait
+  // sinon la veille). Tout autre horodatage (autre intégration) reste affiché dans le fuseau d'affichage.
+  getDailyForecastTimeZone(datetime) {
+    const date = new Date(datetime);
+    return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 ? "UTC" : this.getDisplayTimeZone();
   }
 
 _unsubscribeDailyForecastEvents() {
@@ -536,7 +563,7 @@ _unsubscribeDailyForecastEvents() {
   renderDetails(stateObj) {
     const sun = this.hass.states["sun.sun"];
     const lang = this.hass.language;
-    const timeZone = this.hass.config.time_zone;
+    const timeZone = this.getDisplayTimeZone();
     const t = this.getTranslations();
     let next_rising;
     let next_setting;
@@ -748,12 +775,12 @@ _unsubscribeDailyForecastEvents() {
             ? new Date(daily.datetime).toLocaleDateString(lang, {
                 weekday: "short",
                 day: "numeric",
-                timeZone: this.hass.config.time_zone,
+                timeZone: this.getDailyForecastTimeZone(daily.datetime),
               })
             : new Date(daily.datetime).toLocaleTimeString(lang, {
                 "hour": "2-digit",
                 "minute": "2-digit",
-                "timeZone": this.hass.config.time_zone,
+                "timeZone": this.getDisplayTimeZone(),
                 ...this.getTimeFormatOptions(),
               })}
         </li>
@@ -870,7 +897,7 @@ _unsubscribeDailyForecastEvents() {
 
   getOneHourForecastTime(rainForecastEntity) {
     const lang = this.hass.language;
-    const timeZone = this.hass.config.time_zone;
+    const timeZone = this.getDisplayTimeZone();
     const timeRefRaw = rainForecastEntity.attributes["forecast_time_ref"];
     let rainForecastTimeRef = timeRefRaw ? new Date(timeRefRaw) : new Date();
     const timeFormatOptions = this.getTimeFormatOptions();

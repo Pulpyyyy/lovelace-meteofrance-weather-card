@@ -194,3 +194,9 @@ Les icônes animés sont issus du site [amChart](https://www.amcharts.com/free-a
   **Réponse** : Valider bien que la ville que vous avez configuré dans l'intégration Météo France soit dans une région où ce type d'information est disponible. Consulter [cette carte](https://meteo.orange.fr/previsions-pluie/) sur le site de météo France.
 
   Vous pouvez également valider, depuis la page `Outils de développement > Etats` de HA, que l'entité `sensor.maville_next_rain` retourne des informations prévisionnelles de pluie dans l'heure.
+
+- **Question** : Je suis sur place dans une ville hors du fuseau horaire de mon serveur Home Assistant (ex. Halifax au Canada) et les heures de la carte sont celles du serveur.
+
+  **Réponse** : Dans votre profil Home Assistant (votre nom en bas du menu), réglez « Fuseau horaire » sur « Utiliser le fuseau horaire du navigateur ». La carte affiche alors toutes les heures (prévisions horaires, lever/coucher du soleil, pluie dans l'heure) dans le fuseau de votre appareil, comme les cartes natives. Ce réglage suit le fuseau de l'appareil : un appareil mal réglé affichera des heures décalées.
+
+  L'intégration Météo France fournit les prévisions en UTC sans indiquer le fuseau de la ville. Depuis la France, la météo d'une ville étrangère reste donc affichée dans le fuseau du serveur (ou du navigateur selon le profil), et non dans celui de la ville.
